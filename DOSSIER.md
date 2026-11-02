@@ -78,13 +78,31 @@ groupes, pas entre deux chercheurs par exemple), déni de service réseau
 
 ### Fichiers SUID présents
 
-À documenter après `find / -xdev -perm -4000 -type f 2>/dev/null` sur la
-VM durcie : il s'agit normalement des binaires standard Debian
-(`/usr/bin/sudo`, `/usr/bin/su`, `/usr/bin/passwd`, `/usr/bin/mount`,
-`/usr/bin/umount`, `/usr/bin/chfn`, `/usr/bin/chsh`, `/usr/bin/gpasswd`,
-`/usr/bin/newgrp`). Aucun binaire SUID supplémentaire n'a été ajouté
-par ce projet ; chacun de ces binaires est nécessaire au fonctionnement
-normal du système (changement d'utilisateur, de mot de passe, montage).
+Relevé réel sur la VM durcie (`find / -xdev -perm -4000 -type f`) :
+
+- `/usr/bin/sudo`, `/usr/bin/su`, `/usr/bin/passwd`, `/usr/bin/chfn`,
+  `/usr/bin/chsh`, `/usr/bin/gpasswd`, `/usr/bin/newgrp` : nécessaires
+  à la gestion standard des comptes/mots de passe, imposés par Debian.
+- `/usr/bin/mount`, `/usr/bin/umount`, `/usr/bin/fusermount3`,
+  `/usr/bin/ntfs-3g` : montage de systèmes de fichiers par un utilisateur
+  non privilégié (utile pour le second disque/les sauvegardes).
+- `/usr/lib/openssh/ssh-keysign` : signature des clés d'hôte pour
+  l'authentification SSH basée sur l'hôte (non utilisée ici, mais
+  installée par défaut avec `openssh-client`).
+- `/usr/lib/dbus-1.0/dbus-daemon-launch-helper`,
+  `/usr/lib/polkit-1/polkit-agent-helper-1`, `/usr/bin/pkexec` : pile
+  D-Bus/PolicyKit installée par défaut avec les dépendances système,
+  non utilisée directement par ce projet mais présente sur une
+  installation Debian standard.
+- `/usr/sbin/pppd`, `/usr/lib/xorg/Xorg.wrap`,
+  `/usr/bin/vmware-user-suid-wrapper` : hérités du profil d'installation
+  choisi (tâche « système standard » incluant des paquets réseau/
+  affichage/VMware Tools non indispensables à un serveur). **À
+  reconsidérer** : sur une installation réellement minimale sans
+  interface graphique, `xorg` et `pppd` ne devraient pas être présents ;
+  à purger si le temps le permet (`apt purge xserver-xorg* ppp`).
+
+Aucun binaire SUID supplémentaire n'a été ajouté par ce projet.
 
 ## 4. Procédure de restauration d'une sauvegarde
 
