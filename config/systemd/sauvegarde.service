@@ -1,0 +1,6 @@
+[Unit]
+Description=Sauvegarde incrémentale de /srv et /etc (B1)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/sauvegarde.sh

@@ -1,0 +1,13 @@
+login;nom;groupe_principal;groupes_secondaires
+lmarie;Lucas Marie;admins;acces_ssh
+gbazydlo;Guillaume Bazydlo;admins;acces_ssh
+mcrespel;Malo Crespel;admins;acces_ssh
+support;Compte support;support;acces_ssh
+jrousseau;Julien Rousseau;technique;
+cfabre;Camille Fabre;technique;
+amorel;Antoine Morel;chercheurs;
+slevy;Sophie Levy;chercheurs;
+tgauthier;Thomas Gauthier;doctorants;
+ndubois;Nina Dubois;doctorants;
+pleroy;Paul Leroy;invite;acces_ssh
+eblanc;Emma Blanc;invite;acces_ssh
