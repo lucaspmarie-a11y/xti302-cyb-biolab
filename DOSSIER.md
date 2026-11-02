@@ -13,7 +13,7 @@
 | S3 | `AllowGroups acces_ssh` | `test_S3` | R39 |
 | S4 | `MaxAuthTries 4` ; `ClientAliveInterval 300` × `ClientAliveCountMax 3` = 15 min | `test_S4_*` | R40 |
 | S5 | fichier dans `sshd_config.d/`, validé par `sshd -t` avant `systemctl reload ssh` | `test_S5` | - |
-| J1 | fail2ban, jail `sshd`, 4 échecs / 10 min -> ban 10 min | `test_J1_*` | R52 |
+| J1 | fail2ban, jail `sshd`, mode `aggressive` (nécessaire en SSH clé-seule, voir Choix techniques), 4 échecs / 10 min -> ban 10 min. Testé avec une vraie tentative de clé invalide, bannissement confirmé. | `test_J1_*` | R52 |
 | J2 | nftables, `policy drop` en entrée, autorise `lo`, `established,related`, port 22 | `test_J2_*` | R52 |
 | J3 | `Storage=persistent` dans `journald.conf.d/` | `test_J3` | R55 |
 | J4 | `analyse_logs.sh` lit `journalctl -u ssh.service`, seuil configurable (`SEUIL`, défaut 10) | `test_J4` | - |
@@ -32,6 +32,17 @@
   tentatives sur une seule connexion ne doit pas forcément être banni
   immédiatement, mais le refaire une fois de plus dans les 10 minutes
   déclenche le ban.
+- **`mode = aggressive` pour la jail sshd** (et pas le `normal` par
+  défaut) : testé en conditions réelles (4 tentatives de clé invalide
+  depuis l'hôte), le mode `normal` de fail2ban ne détectait **aucun**
+  échec, car sur une config SSH clé-seule (S1) les tentatives refusées
+  ne produisent jamais de ligne `Failed password` mais des fermetures
+  pré-authentification (`Connection closed by authenticating user ...
+  [preauth]`, `drop connection ... penalty: failed authentication`
+  sur OpenSSH récent) que le filtre par défaut classe explicitement
+  comme non-échecs en mode `normal`. `aggressive` les compte comme des
+  échecs. Sans ce correctif, J1 était actif mais inefficace contre le
+  seul type d'attaque possible ici.
 - **Seuil d'alerte `analyse_logs.sh`** : 10 échecs pour une même IP,
   réglable via la variable d'environnement `SEUIL`. Choisi pour rester
   au-dessus du nombre normal d'erreurs de frappe d'un utilisateur
@@ -52,8 +63,10 @@
 Attaques rendues plus difficiles par cette configuration :
 
 1. **Force brute SSH sur un mot de passe** : impossible, authentification
-   par clé uniquement (S1). Même avec clé, fail2ban bannit après 4
-   échecs répétés (J1).
+   par clé uniquement (S1). Même en tentant plusieurs clés invalides,
+   fail2ban bannit après 4 échecs répétés (J1, testé réellement : voir
+   Choix techniques pour le correctif `mode = aggressive`, sans lequel
+   ces tentatives seraient passées inaperçues).
 2. **Connexion directe en root** : refusée par SSH (S2) ; de plus le
    compte root est verrouillé localement (C4), donc même avec le mot de
    passe personne ne peut l'utiliser pour se connecter ou faire un `su`.
