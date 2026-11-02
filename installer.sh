@@ -106,5 +106,15 @@ systemctl enable --now sauvegarde.timer
 echo "=== 13. verifier.sh ==="
 install -m 750 -o root -g root "$SCRIPT_DIR/verifier.sh" \
     /usr/local/sbin/verifier.sh
+install -m 640 -o root -g admins "$SCRIPT_DIR/comptes.csv" /usr/local/sbin/comptes.csv
+install -m 640 -o root -g admins "$SCRIPT_DIR/DOSSIER.md" /usr/local/sbin/DOSSIER.md
+
+echo "=== 14. D2 : réduction de la surface réseau (cups non nécessaire) ==="
+systemctl disable --now cups cups-browsed >/dev/null 2>&1 || true
+apt-get purge -y -qq cups cups-daemon cups-client cups-browsed >/dev/null 2>&1 || true
+apt-get autoremove -y -qq >/dev/null 2>&1 || true
+
+echo "=== 15. première sauvegarde (B1) ==="
+/usr/local/sbin/sauvegarde.sh || true
 
 echo "installer.sh terminé."

@@ -9,7 +9,9 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CSV="${CSV:-$SCRIPT_DIR/comptes.csv}"
-[ -f "$CSV" ] || CSV="/usr/local/sbin/comptes.csv"
+[ -f "$CSV" ] || CSV="/opt/xti302-biolab/comptes.csv"
+DOSSIER="$SCRIPT_DIR/DOSSIER.md"
+[ -f "$DOSSIER" ] || DOSSIER="/opt/xti302-biolab/DOSSIER.md"
 
 PASS=0
 FAIL=0
@@ -55,8 +57,8 @@ test_C2_donnees_brutes() {
     local d=/srv/donnees_brutes
     sudo -u jrousseau test -w "$d" && sudo -u cfabre test -w "$d" \
         && sudo -u amorel test -r "$d" && ! sudo -u slevy test -w "$d" \
-        && ! sudo -u tgauthier test -r "$d" \
-        && ok "C2" "$d : technique rw, chercheurs r, doctorants aucun accès" \
+        && sudo -u tgauthier test -r "$d" && ! sudo -u eblanc test -r "$d" \
+        && ok "C2" "$d : technique rw, chercheurs/doctorants r, invite aucun accès" \
         || ko "C2" "$d : droits non conformes"
 }
 
@@ -243,7 +245,7 @@ test_B3() {
 }
 
 test_B4() {
-    grep -qi "restaur" "$SCRIPT_DIR/DOSSIER.md" 2>/dev/null \
+    grep -qi "restaur" "$DOSSIER" 2>/dev/null \
         && ok "B4" "la procédure de restauration est documentée dans DOSSIER.md" \
         || ko "B4" "aucune procédure de restauration documentée"
 }
@@ -275,7 +277,7 @@ test_D3_world_writable() {
 }
 
 test_D3_suid() {
-    grep -qi "suid" "$SCRIPT_DIR/DOSSIER.md" 2>/dev/null \
+    grep -qi "suid" "$DOSSIER" 2>/dev/null \
         && ok "D3" "les fichiers SUID sont listés et expliqués dans DOSSIER.md" \
         || ko "D3" "aucune liste des fichiers SUID dans DOSSIER.md"
 }
